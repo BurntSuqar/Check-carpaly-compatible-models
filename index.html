@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>车型查询系统</title>
+    <style>
+        /* 保持原有样式不变 */
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f0f0f0; }
+        .container { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .match-item { margin: 10px 0; padding: 10px; background-color: #f8f9fa; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>车型查询系统</h1>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="示例：toyota 或 honda civic 或 bmw x5 2020">
+            <button id="searchBtn">搜索</button>
+        </div>
+        <div id="resultContainer" class="result"></div>
+    </div>
+
+    <!-- 加载顺序很重要：先数据后逻辑 -->
+    <script src="data.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>车型查询系统</title>
+    <title>Check CarPlay compatible models</title>
     <style>
         /* 保持原有样式不变 */
         body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f0f0f0; }
@@ -18,15 +18,15 @@
 </head>
 <body>
     <div class="container">
-        <h1>车型查询系统</h1>
+        <h1>Enter the car model you want to query!</h1>
         <div class="search-box">
-            <input type="text" id="searchInput" placeholder="示例：toyota 或 honda civic 或 bmw x5 2020">
-            <button id="searchBtn">搜索</button>
+            <input type="text" id="searchInput" placeholder="Example: TOYOTA or honda civic or Bmw X5 2020">
+            <button id="searchBtn">🔍Query</button>
         </div>
         <div id="resultContainer" class="result"></div>
     </div>
 
-    <!-- 加载顺序很重要：先数据后逻辑 -->
+    <!-- 加载数据后逻辑 -->
     <script src="data.js"></script>
     <script src="main.js"></script>
 </body>

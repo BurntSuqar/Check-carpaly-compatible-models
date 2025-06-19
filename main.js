@@ -6,68 +6,93 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// 修改 handleSearch 函数
 const handleSearch = () => {
     const input = document.getElementById('searchInput').value.trim();
     const resultContainer = document.getElementById('resultContainer');
     resultContainer.innerHTML = '';
-    // 修改后的输入解析逻辑
+
     if (!input) {
         showMessage("请输入查询内容");
         return;
     }
 
-    // 新的解析逻辑 - 更智能地处理纯数字车型
+    // 新的解析逻辑 - 更智能地处理包含空格的品牌和车型
     const parts = input.split(/\s+/);
     let results = [];
 
-    // 情况1: 三个部分 (可能是 品牌 车型 年份)
-    if (parts.length >= 3) {
-        // 尝试将最后部分解析为年份
-        const lastPart = parts[parts.length - 1];
-        const year = parseInt(lastPart);
+    // 尝试匹配带空格的品牌
+    const possibleBrands = Object.keys(vehicleData);
+    let matchedBrand = null;
+    
+    // 检查所有可能的品牌（包括带空格的）
+    for (let i = parts.length; i >= 1; i--) {
+        const brandCandidate = parts.slice(0, i).join(' ').toLowerCase();
+        if (possibleBrands.includes(brandCandidate)) {
+            matchedBrand = brandCandidate;
+            parts.splice(0, i); // 移除已匹配的品牌部分
+            break;
+        }
+    }
+
+    // 剩余部分处理
+    if (matchedBrand) {
+        if (parts.length >= 2) {
+            // 尝试匹配 品牌 车型 年份
+            const year = parseInt(parts[parts.length - 1]);
+            if (!isNaN(year) && year > 1900 && year < 2100) {
+                const model = parts.slice(0, parts.length - 1).join(' ');
+                results = searchFullMatch(matchedBrand, model, year);
+            }
+        }
         
-        if (!isNaN(year) && year > 1900 && year < 2100) {
-            // 将中间部分合并为车型
-            const modelPart = parts.slice(1, parts.length - 1).join(' ');
-            results = searchFullMatch(parts[0], modelPart, year);
-            
-            // 如果没找到结果，尝试不区分品牌和车型
-            if (results.length === 0) {
-                results = searchFullMatch(parts[0], modelPart, year);
+        // 如果上面没找到，尝试 品牌 车型
+        if (results.length === 0 && parts.length >= 1) {
+            const model = parts.join(' ');
+            results = searchBrandModel(matchedBrand, model);
+        }
+        
+        // 如果还是没找到，尝试 品牌 年份
+        if (results.length === 0 && parts.length === 1) {
+            const year = parseInt(parts[0]);
+            if (!isNaN(year) && year > 1900 && year < 2100) {
+                results = searchBrandYear(matchedBrand, year);
             }
         }
     }
-    
-    // 情况2: 两个部分 (可能是 品牌 车型 或 品牌 年份 或 车型 年份)
-    if (results.length === 0 && parts.length === 2) {
-        const part1 = parts[0];
-        const part2 = parts[1];
-        const year = parseInt(part2);
-        
-        // 尝试 品牌 年份
-        if (!isNaN(year) && year > 1900 && year < 2100) {
-            results = searchBrandYear(part1, year);
+
+    // 如果没有匹配到品牌，尝试其他模式
+    if (results.length === 0) {
+        const patterns = [
+            /^(.+?)\s(.+?)\s(\d{4})$/i,    // 品牌 车型 年份
+            /^(.+?)\s(\d{4})$/i,          // 品牌 年份
+            /^(.+?)\s(.+)$/i,             // 品牌 车型
+            /^(.+)$/i                     // 单独品牌或车型
+        ];
+
+        let match;
+        for (let pattern of patterns) {
+            match = input.match(pattern);
+            if (match) break;
         }
-        
-        // 尝试 品牌 车型 (包括纯数字车型)
-        if (results.length === 0) {
-            results = searchBrandModel(part1, part2);
-        }
-        
-        // 尝试 车型 年份
-        if (results.length === 0) {
-            const modelResults = searchModel(part1);
-            results = modelResults.filter(item => item.years.includes(year));
+
+        if (match) {
+            if (match[3]) {
+                results = searchFullMatch(match[1], match[2], parseInt(match[3]));
+            } else if (match[2] && !isNaN(match[2])) {
+                results = searchBrandYear(match[1], parseInt(match[2]));
+            } else if (match[2]) {
+                results = searchBrandModel(match[1], match[2]);
+            } else {
+                const brandResults = searchBrand(match[1]);
+                results = brandResults.length > 0 ? brandResults : searchModel(match[1]);
+            }
+        } else {
+            results = searchFuzzy(input);
         }
     }
-    
-    // 情况3: 单个部分 (品牌或车型)
-    if (results.length === 0 && parts.length === 1) {
-        const brandResults = searchBrand(input);
-        results = brandResults.length > 0 ? brandResults : searchModel(input);
-    }
-    
-    // 情况4: 模糊搜索
+
+    // 如果还是没结果，尝试模糊搜索
     if (results.length === 0) {
         results = searchFuzzy(input);
     }
@@ -75,14 +100,14 @@ const handleSearch = () => {
     displayResults(results, input);
 };
 
-// 修改 searchFullMatch 函数，使车型匹配更灵活
+// 修改 searchFullMatch 和 searchBrandModel 以处理带空格的车型
 const searchFullMatch = (brandInput, modelInput, year) => {
     const brand = findBrand(brandInput);
     if (!brand) return [];
     
     return Object.entries(brand.models)
         .filter(([model, years]) => {
-            // 标准化比较：忽略大小写、空格和特殊字符
+            // 标准化比较：忽略大小写和特殊字符
             const normalizedModel = model.toLowerCase().replace(/[^a-z0-9]/g, '');
             const normalizedInput = modelInput.toLowerCase().replace(/[^a-z0-9]/g, '');
             
@@ -113,7 +138,7 @@ const searchBrandModel = (brandInput, modelInput) => {
     
     return Object.entries(brand.models)
         .filter(([model]) => {
-            // 标准化比较：忽略大小写、空格和特殊字符
+            // 标准化比较：忽略大小写和特殊字符
             const normalizedModel = model.toLowerCase().replace(/[^a-z0-9]/g, '');
             const normalizedInput = modelInput.toLowerCase().replace(/[^a-z0-9]/g, '');
             
@@ -186,17 +211,29 @@ const searchFuzzy = (input) => {
     return results;
 };
 
-// 辅助函数（保持不变）
+// 修改 findBrand 函数以处理带空格的品牌
 const findBrand = (input) => {
-    const normalizedInput = input.toLowerCase().replace(/\s+/g, '-');
+    // 首先尝试直接匹配（包括带空格的品牌）
+    const normalizedInput = input.toLowerCase();
     if (vehicleData[normalizedInput]) {
         return { name: normalizedInput, models: vehicleData[normalizedInput] };
     }
+    
+    // 尝试匹配包含空格的品牌变体
     for (const [brandKey, models] of Object.entries(vehicleData)) {
-        if (brandKey.replace(/-/g, ' ').includes(normalizedInput.replace(/-/g, ' '))) {
+        const displayName = brandKey.replace(/-/g, ' ');
+        if (normalizedInput === displayName.toLowerCase()) {
             return { name: brandKey, models: models };
         }
     }
+    
+    // 最后尝试模糊匹配
+    for (const [brandKey, models] of Object.entries(vehicleData)) {
+        if (brandKey.includes(normalizedInput.replace(/\s+/g, '-'))) {
+            return { name: brandKey, models: models };
+        }
+    }
+    
     return null;
 };
 
@@ -217,20 +254,19 @@ const displayResults = (results, query) => {
     
     // 构建结果HTML - 移除了数量限制
     let html = `
-        <div class="match-item">
-            <p>您查询的"${query}"匹配到以下车型：</p>
-        </div>
+        <div class="match-item"><p>您查询的"${query}"匹配到以下车型</p></div>
     `;
     
     // 直接遍历所有结果，不再限制数量
     results.forEach(item => {
         const brandName = item.brand.replace(/-/g, ' ').toUpperCase();
         const modelName = item.model.toUpperCase();
+        // 格式化年份显示
+        const formattedYears = formatYears(item.years);
+
         html += `
             <div class="match-item">
-                <strong>品牌：</strong>${brandName}<br>
-                <strong>车型：</strong>${modelName}<br>
-                <strong>年份：</strong>${item.years.join(', ')}
+                <strong>品牌:</strong>${brandName} <strong>车型:</strong>${modelName} <strong>年份:</strong>${formattedYears}
             </div>
         `;
     });
@@ -252,4 +288,33 @@ const showMessage = (msg) => {
 // 添加车型标准化函数
 const normalizeModel = (model) => {
     return model.toString().toLowerCase().replace(/\s+/g, '');
+};
+
+// 优化年份格式化函数
+const formatYears = (years) => {
+    if (years.length === 0) return "无年份数据";
+    
+    // 对年份排序
+    const sortedYears = [...years].sort((a, b) => a - b);
+    
+    // 单个年份直接返回
+    if (sortedYears.length === 1) {
+        return sortedYears[0];
+    }
+    
+    // 检查年份是否连续
+    let isContinuous = true;
+    for (let i = 1; i < sortedYears.length; i++) {
+        if (sortedYears[i] !== sortedYears[i - 1] + 1) {
+            isContinuous = false;
+            break;
+        }
+    }
+    
+    // 根据连续性返回不同格式
+    if (isContinuous) {
+        return `${sortedYears[0]}-${sortedYears[sortedYears.length - 1]}`;
+    } else {
+        return sortedYears.join(", ");
+    }
 };

@@ -13,7 +13,7 @@ const handleSearch = () => {
     resultContainer.innerHTML = '';
 
     if (!input) {
-        showMessage("请输入查询内容");
+        showMessage("Please enter the car you want to query！");
         return;
     }
 
@@ -244,9 +244,9 @@ const displayResults = (results, query) => {
     if (results.length === 0) {
         container.innerHTML = `
             <div class="match-item">
-                <p>没有找到与"${query}"匹配的车型</p>
-                <p>请确认输入是否正确，或者尝试其他关键词</p>
-                <p>需要帮助？请联系客服：400-123-4567</p>
+                <p>The model you entered was not found "${query}"</p>
+                <p>Please confirm that the input is correct and try again.</p>
+                <p>Need help? Contact Customer Service:400-123-4567</p>
             </div>
         `;
         return;
@@ -254,7 +254,7 @@ const displayResults = (results, query) => {
     
     // 构建结果HTML - 移除了数量限制
     let html = `
-        <div class="match-item"><p>您查询的"${query}"匹配到以下车型</p></div>
+        <div class="match-item"><p>Your query matches the following models "${query}"</p></div>
     `;
     
     // 直接遍历所有结果，不再限制数量
@@ -266,15 +266,15 @@ const displayResults = (results, query) => {
 
         html += `
             <div class="match-item">
-                <strong>品牌:</strong>${brandName} <strong>车型:</strong>${modelName} <strong>年份:</strong>${formattedYears}
+                <strong>Brand:</strong>${brandName} <strong>Model:</strong>${modelName} <strong>Year production:</strong>${formattedYears}
             </div>
         `;
     });
     
     // 添加提示信息（移除了数量限制的提示）
     html += `<div class="match-item">
-        <p>共找到${results.length}个结果</p>
-        <p>未找到您需要的车型？请尝试其他关键词或联系客服</p>
+        <p>A total of ${results.length} results were found</p>
+        <p>Can't find your model? Please confirm and try again or contact customer service.</p>
     </div>`;
     
     container.innerHTML = html;
@@ -292,7 +292,7 @@ const normalizeModel = (model) => {
 
 // 优化年份格式化函数
 const formatYears = (years) => {
-    if (years.length === 0) return "无年份数据";
+    if (years.length === 0) return "Can't find your model? Please confirm and try again or contact customer service.";
     
     // 对年份排序
     const sortedYears = [...years].sort((a, b) => a - b);

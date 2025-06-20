@@ -266,7 +266,7 @@ const displayResults = (results, query) => {
 
         html += `
             <div class="match-item">
-                <strong>Brand:</strong>${brandName} <strong>Model:</strong>${modelName} <strong>Year production:</strong>${formattedYears}
+                <strong>Brand:</strong>${brandName} <strong>Model:</strong>${modelName} <strong>Vehicle year:</strong>${formattedYears}
             </div>
         `;
     });
@@ -292,7 +292,7 @@ const normalizeModel = (model) => {
 
 // 优化年份格式化函数
 const formatYears = (years) => {
-    if (years.length === 0) return "Can't find your model? Please confirm and try again or contact customer service.";
+    if (years.length === 0) return "All years compatible.";
     
     // 对年份排序
     const sortedYears = [...years].sort((a, b) => a - b);

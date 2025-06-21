@@ -245,8 +245,7 @@ const displayResults = (results, query) => {
         container.innerHTML = `
             <div class="match-item">
                 <p>The model you entered was not found "${query}"</p>
-                <p>Please confirm that the input is correct and try again.</p>
-                <p>Need help? Contact Customer Service:400-123-4567</p>
+                <p>Please confirm and try again or contact customer service.</p>
             </div>
         `;
         return;

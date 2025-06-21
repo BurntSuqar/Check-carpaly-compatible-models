@@ -265,7 +265,8 @@ const displayResults = (results, query) => {
 
         html += `
             <div class="match-item">
-                <strong>Brand:</strong>${brandName} <strong>Model:</strong>${modelName} <strong>Vehicle year:</strong>${formattedYears}
+                <strong>Brand:</strong>${brandName} <strong>Model:</strong>${modelName}<br>
+                <strong>Vehicle year:</strong>${formattedYears}
             </div>
         `;
     });
